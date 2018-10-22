@@ -18,5 +18,8 @@
   "bugs": {
     "url": "https://github.com/simonefuoco/data-etl-mssql/issues"
   },
-  "homepage": "https://github.com/simonefuoco/data-etl-mssql#readme"
+  "homepage": "https://github.com/simonefuoco/data-etl-mssql#readme",
+  "dependencies": {
+    "tedious": "^2.6.4"
+  }
 }
