@@ -16,6 +16,7 @@
  */
 
 const tedious = require('tedious');
+const { Readable } = require('stream');
 
 /**
  * @typedef {Object} TediousConnectionConfig
@@ -44,9 +45,7 @@ const tedious = require('tedious');
  * @private
  * @param {ExtractorArgs} args - Extractor arguments.
  */
-const mssqlImport = (args) => {
-    let state = {};
-    state.promises = [];
+const mssqlImport = (args, state) => {
     state.conn = new tedious.Connection(args.config);
     state.conn.on('connect', afterConnect(args, state));
 };
@@ -72,7 +71,7 @@ const afterConnect = (args, state) => {
  */
 const forEachRow = (args, state) => {
     return (columns) => {
-        state.promises.push(save(columns, args, state));
+        save(columns, args, state);
     };
 };
 
@@ -82,12 +81,13 @@ const forEachRow = (args, state) => {
  * @param {EventRowColumns} columns
  * @param {ExtractorArgs} args - Extractor arguments.
  */
-const save = async (columns, args) => {
+const save = (columns, args, state) => {
     let doc = {};
     columns.forEach(col => {
         doc[col.metadata.colName] = col.value;
     });
-    args.store.insert(doc);
+    //args.store.insert(doc);
+    state.stream.push(doc);
 };
 
 /**
@@ -95,10 +95,11 @@ const save = async (columns, args) => {
  * @private
  * @param {ExtractorArgs} args - Extractor arguments.
  */
-const afterSqlStream = (args) => {
+const afterSqlStream = (args, state) => {
     return (err, rowCount) => {
         if(err && !rowCount) throw new Error("error mmsql query execution");
-        await Promise.all(state.promises);
+        //await Promise.all(state.promises);
+        state.stream.push(null);
     };
 }
 
@@ -107,7 +108,13 @@ const afterSqlStream = (args) => {
  * @function extract
  * @public
  * @param {Object} args - extractor arguments.
+ * @return 
  */
-module.exports.extract = async (args) => {
-    await mssqlImport(args);
+module.exports.extract = (args) => {
+    let state = {};
+    state.stream = new Readable({
+        objectMode: true,
+        read() {}
+    });
+    mssqlImport(args, state);
 }
