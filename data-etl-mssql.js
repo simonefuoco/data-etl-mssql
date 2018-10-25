@@ -24,11 +24,6 @@ const { Readable } = require('stream');
  */
 
 /**
- * @typedef {Object} NeDBDataStore
- * @see {@link https://github.com/louischatriot/nedb | NeDB Repository and Documentation}
- */
-
-/**
  * @typedef {Object|Array} EventRowColumns
  * @see {@link http://tediousjs.github.io/tedious/api-request.html#event_row| Event Row Columns Documentation}
  */
@@ -37,7 +32,6 @@ const { Readable } = require('stream');
  * @typedef ExtractorArgs
  * @property {TediousConnectionConfig} config - Tedious configuration object.
  * @property {string} query - SQL Query.
- * @property {NeDBDataStore} store - NeDB DataStore object.
  */
 
 /**
@@ -117,4 +111,5 @@ module.exports.extract = (args) => {
         read() {}
     });
     mssqlImport(args, state);
+    return state.stream;
 }
