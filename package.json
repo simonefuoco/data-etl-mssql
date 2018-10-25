@@ -1,6 +1,6 @@
 {
   "name": "data-etl-mssql",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Connector for MSSQL",
   "main": "mssql.js",
   "scripts": {
