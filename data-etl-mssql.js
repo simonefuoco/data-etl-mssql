@@ -17,6 +17,8 @@
 
 const tedious = require('tedious');
 const { Readable } = require('stream');
+const queue = [];
+const isFinished = false;
 
 /**
  * @typedef {Object} TediousConnectionConfig
@@ -81,7 +83,8 @@ const save = (columns, args, state) => {
         doc[col.metadata.colName] = col.value;
     });
     //args.store.insert(doc);
-    state.stream.push(doc);
+    //state.stream.push(doc);
+    queue.push(doc);
 };
 
 /**
@@ -93,7 +96,8 @@ const afterSqlStream = (args, state) => {
     return (err, rowCount) => {
         if(err && !rowCount) throw new Error("error mmsql query execution");
         //await Promise.all(state.promises);
-        state.stream.push(null);
+        //state.stream.push(null);
+        isFinished = true;
     };
 }
 
@@ -106,10 +110,13 @@ const afterSqlStream = (args, state) => {
  */
 module.exports.extract = (args) => {
     let state = {};
-    state.stream = new Readable({
-        objectMode: true,
-        read() {}
-    });
     mssqlImport(args, state);
-    return state.stream;
+    return new Readable({
+        objectMode: true,
+        read() {
+            if (queue.length) {
+                this.push(queue.pop());
+            }
+        }
+    });
 }
