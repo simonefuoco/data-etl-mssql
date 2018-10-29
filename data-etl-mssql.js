@@ -69,4 +69,4 @@ class Extractor
     }
 }
 
-
+module.exports.Extractor = Extractor;
