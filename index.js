@@ -6,6 +6,7 @@ const EventEmitter = require('events');
 class Extractor extends EventEmitter
 {
     constructor(args) {
+        super();
         this.conn = null;
         this.promises = [];
         this.req = null;
