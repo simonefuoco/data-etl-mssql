@@ -36,7 +36,7 @@ class Extractor extends EventEmitter
         return (err) => {
             if(err) reject(new Error("mssql connection"));
             self.req = new Request(self.query, self.cbRequest(resolve, reject));
-            self.req.on('row', onRow());
+            self.req.on('row', self.onRow());
             self.conn.execSql(self.req);
         };
     }
