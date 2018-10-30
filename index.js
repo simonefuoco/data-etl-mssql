@@ -1,21 +1,17 @@
 const {Connection, Request} = require('tedious');
+const EventEmitter = require('events');
 
 //TODO - too many promises - paginate result
 
-class Extractor
+class Extractor extends EventEmitter
 {
     constructor(args) {
-        this.ready = false;
         this.conn = null;
         this.promises = [];
         this.req = null;
         this.config = args.config;
         this.query = args.query;
         this.cache = args.cache;
-    }
-
-    get isReady() {
-        return this.ready;
     }
 
     init() {
@@ -26,18 +22,11 @@ class Extractor
         });
     }
 
-    extract() {
-        let {value, done} = this.generator.next();
-        if (!done) {
-            return false;
+    extract(obj) {
+        if (!this.cache.isEmpty) {
+            return this.cache.readAndDeleteOne(obj);
         } else {
-            return value;
-        }
-    }
-
-    * generator() {
-        while(!this.cache.isEmpty()) {
-            yield this.cache.readAndDeleteOne();
+            return false;
         }
     }
 
@@ -57,8 +46,11 @@ class Extractor
             if(err && !rowCount) reject(new Error("mmsql req"));
             Promise.all(self.promises)
             .then(values => {
-                ready = true;
-                resolve();
+                if(self.emit('data-etl-extractor-ready')) {
+                    resolve();
+                } else {
+                    reject(new Error("mssql cache create - no handlers"));
+                }
             })
             .catch(reason => {
                 reject(new Error("mssql cache create"));
@@ -73,7 +65,7 @@ class Extractor
             for (const col of columns) {
                 doc[col.metadata.colName] = col.value;
             }
-            self.promises.push(self.cache.create(doc));
+            self.promises.push(self.cache.createOne(doc));
         }
     }
 }
