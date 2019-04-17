@@ -20,6 +20,6 @@
   },
   "homepage": "https://github.com/simonefuoco/data-etl-mssql#readme",
   "dependencies": {
-    "tedious": "^2.6.4"
+    "tedious": "^6.1.1"
   }
 }
